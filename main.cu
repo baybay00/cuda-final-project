@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 
     // Allocate and initialize host memory
     if(argc == 1) {
-        in_elements = 1000000;
+        in_elements = 100000;
     } else if(argc == 2) {
         in_elements = atoi(argv[1]);
     } else {
