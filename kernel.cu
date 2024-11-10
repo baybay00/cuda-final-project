@@ -1,4 +1,4 @@
-#define BLOCK_SIZE 512
+#define BLOCK_SIZE 1024
 
 __global__ void bubbleSort(float* in, unsigned size, bool is_even)
 {
