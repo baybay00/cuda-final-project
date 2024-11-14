@@ -83,7 +83,7 @@ void insertionSort(float in[], int size)
     }
 }
 
-void selectionSort(int in[], int size) {
+void selectionSort(float in[], int size) {
     for (int i = 0; i < size - 1; i++) {
         int min_idx = i;
         for (int j = i + 1; j < size; j++) {
@@ -94,6 +94,22 @@ void selectionSort(int in[], int size) {
         int temp = in[i];
         in[i] = in[min_idx];
         in[min_idx] = temp;
+    }
+}
+
+void shellSort(float in[], int size)
+{
+    for (int gap = size/2; gap > 0; gap /= 2)
+    {
+        for (int i = gap; i < size; i += 1)
+        {
+            int temp = in[i];
+            int j;            
+            for (j = i; j >= gap && in[j - gap] > temp; j -= gap)
+                in[j] = in[j - gap];
+            
+            in[j] = temp;
+        }
     }
 }
 

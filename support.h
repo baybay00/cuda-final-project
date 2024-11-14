@@ -18,6 +18,7 @@ void quickSort(float arr[], int low, int high);
 void partition(int arr[], int low, int high);
 void insertionSort(float arr[], int size);
 void selectionSort(float arr[], int size);
+void shellSort(float arr[], int size);
 void startTime(Timer* timer);
 void stopTime(Timer* timer);
 float elapsedTime(Timer timer);

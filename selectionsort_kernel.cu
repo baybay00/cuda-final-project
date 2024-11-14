@@ -1,23 +1,21 @@
 #define BLOCK_SIZE 1024
 
-__global__ void selectionsort_kernel(float* in, unsigned size, unsigned pass)
-{
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void selectionsort_kernel(float *in, int size) {
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
     
-    if(tid < size - pass)
-    {
-        int min_idx = pass;
-        if(in[tid + pass] < in[min_idx])
-        {
-            min_idx = tid + pass;
+    for (int i = tid; i < size - 1; i += gridDim.x * blockDim.x) {
+        int minIndex = i;
+
+        for (int j = i + 1; j < size; j++) {
+            if (in[j] < in[minIndex]) {
+                minIndex = j;
+            }
         }
 
-        __syncthreads();
-
-        if (tid == pass && min_idx != pass) {
-            int temp = in[pass];
-            in[pass] = in[min_idx];
-            in[min_idx] = temp;
+        if (minIndex != i) {
+            int temp = in[i];
+            in[i] = in[minIndex];
+            in[minIndex] = temp;
         }
     }
 }

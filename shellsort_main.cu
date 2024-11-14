@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "support.h"
-#include "selectionsort_kernel.cu"
+#include "shellsort_kernel.cu"
 
 int main(int argc, char* argv[])
 {
@@ -25,8 +25,8 @@ int main(int argc, char* argv[])
         in_elements = atoi(argv[1]);
     } else {
         printf("\n    Invalid input parameters!"
-           "\n    Usage: ./selection_sort         # Input of size 100,000 is used"
-           "\n    Usage: ./selection_sort <m>      # Input of size m is used"
+           "\n    Usage: ./shell_sort          # Input of size 100,000 is used"
+           "\n    Usage: ./shell_sort <m>      # Input of size m is used"
            "\n");
         exit(0);
     }
@@ -58,16 +58,16 @@ int main(int argc, char* argv[])
     cudaDeviceSynchronize();
     stopTime(&timer); printf("%f s\n", elapsedTime(timer));
 
-    // Timing host-side selection sort ---------------------------------------
-    printf("Running host-side selection sort...\n"); fflush(stdout);
+    // Timing host-side shell sort ---------------------------------------
+    printf("Running host-side shell sort...\n"); fflush(stdout);
     startTime(&timer);
 
     float* in_h_copy = (float*)malloc(in_elements * sizeof(float));
     memcpy(in_h_copy, in_h, in_elements * sizeof(float));
-    bubbleSort(in_h_copy, in_elements); 
+    shellSort(in_h_copy, in_elements); 
 
     stopTime(&timer); 
-    printf("Host-side selection sort time: %f s\n", elapsedTime(timer));
+    printf("Host-side shell sort time: %f s\n", elapsedTime(timer));
 
     free(in_h_copy);  // Free the temporary copy
 
@@ -78,23 +78,23 @@ int main(int argc, char* argv[])
     dim_block.x = BLOCK_SIZE;
     dim_grid.x = (in_elements + 2 * BLOCK_SIZE -1)/(2 * BLOCK_SIZE);
 
-    selectionsort_kernel<<<dim_grid, dim_block>>>(in_d, in_elements * sizeof(float));
+    for(int gap = in_elements/2; gap > 0; gap /= 2)
+    {
+        shellsort_kernel<<<dim_grid, dim_block>>>(in_d, in_elements, gap);
+    }
+
     cuda_ret = cudaDeviceSynchronize();
     if(cuda_ret != cudaSuccess) printf("Unable to launch kernel");
-    
-    
+
     stopTime(&timer); 
-    printf("Device selection sort time: %f s\n", elapsedTime(timer));
+    printf("Device shell sort time: %f s\n", elapsedTime(timer));
 
     // Verify correctness -----------------------------------------------------
 
     printf("Verifying results...\n"); fflush(stdout);
 
-    cudaDeviceSynchronize();
-
     float* sorted_h = (float*)malloc((in_elements) * sizeof(float));
-    cuda_ret = cudaMemcpy(sorted_h, in_d, in_elements*sizeof(float), cudaMemcpyDeviceToHost);
-    if(cuda_ret != cudaSuccess) printf("Unable to copy sorted_h from device to host");
+    cudaMemcpy(sorted_h, in_d, in_elements*sizeof(float), cudaMemcpyDeviceToHost);
 
     bool sorted = true;
     for (int i = 1; i < in_elements; i++) {
