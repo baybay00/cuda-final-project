@@ -42,6 +42,61 @@ void bubbleSort(float in[], int size)
     }
 }
 
+int partition(float in[], int low, int high)
+{
+    float pivot = in[high];
+    int i = low - 1;
+    for(int j = low; j <= high - 1; j++)
+    {
+        if(in[j] < pivot)
+        {
+            i++;
+            swap(&in[i], &in[j]);
+        }
+    }
+
+    swap(&in[i + 1], &in[high]);
+    return i + 1;
+}
+
+void quickSort(float in[], int low, int high)
+{
+    if(low < high)
+    {
+        int pi = partition(in, low, high);
+        quickSort(in, low, pi - 1);
+        quickSort(in, pi + 1, high);
+    }
+}
+
+void insertionSort(float in[], int size)
+{
+    for (int i = 1; i < size; ++i) {
+        int key = in[i];
+        int j = i - 1;
+
+        while (j >= 0 && in[j] > key) {
+            in[j + 1] = in[j];
+            j = j - 1;
+        }
+        in[j + 1] = key;
+    }
+}
+
+void selectionSort(int in[], int size) {
+    for (int i = 0; i < size - 1; i++) {
+        int min_idx = i;
+        for (int j = i + 1; j < size; j++) {
+            if (in[j] < in[min_idx]) {
+                min_idx = j;
+            }
+        }
+        int temp = in[i];
+        in[i] = in[min_idx];
+        in[min_idx] = temp;
+    }
+}
+
 void startTime(Timer* timer) {
     gettimeofday(&(timer->startTime), NULL);
 }

@@ -14,6 +14,10 @@ extern "C" {
 void initVector(float **vec_h, unsigned size);
 void swap(float* xp, float* yp);
 void bubbleSort(float arr[], int n);
+void quickSort(float arr[], int low, int high);
+void partition(int arr[], int low, int high);
+void insertionSort(float arr[], int size);
+void selectionSort(float arr[], int size);
 void startTime(Timer* timer);
 void stopTime(Timer* timer);
 float elapsedTime(Timer timer);
