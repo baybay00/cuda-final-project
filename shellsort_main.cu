@@ -20,12 +20,12 @@ int main(int argc, char* argv[])
 
     // Allocate and initialize host memory
     if(argc == 1) {
-        in_elements = 100000;
+        in_elements = 10000;
     } else if(argc == 2) {
         in_elements = atoi(argv[1]);
     } else {
         printf("\n    Invalid input parameters!"
-           "\n    Usage: ./shell_sort          # Input of size 100,000 is used"
+           "\n    Usage: ./shell_sort          # Input of size 10,000 is used"
            "\n    Usage: ./shell_sort <m>      # Input of size m is used"
            "\n");
         exit(0);
@@ -76,16 +76,15 @@ int main(int argc, char* argv[])
     startTime(&timer);
 
     dim_block.x = BLOCK_SIZE;
-    dim_grid.x = (in_elements + 2 * BLOCK_SIZE -1)/(2 * BLOCK_SIZE);
+    dim_grid.x = (in_elements + BLOCK_SIZE -1)/(BLOCK_SIZE);
 
     for(int gap = in_elements/2; gap > 0; gap /= 2)
     {
-        shellsort_kernel<<<dim_grid, dim_block>>>(in_d, in_elements, gap);
+        shellsort_kernel<<<dim_grid, dim_block, dim_block.x*sizeof(float)>>>(in_d, in_elements, gap);
     }
-
-    cuda_ret = cudaDeviceSynchronize();
-    if(cuda_ret != cudaSuccess) printf("Unable to launch kernel");
-
+    // cuda_ret = cudaDeviceSynchronize();
+    // if(cuda_ret != cudaSuccess) printf("unable to launch kernel");
+    
     stopTime(&timer); 
     printf("Device shell sort time: %f s\n", elapsedTime(timer));
 
