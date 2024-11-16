@@ -1,61 +1,58 @@
-#define BLOCK_SIZE 1024
+#define BLOCK_SIZE 256
+#define STACK_SIZE 1024  // Adjust size according to your GPU
 
-__device__ int partition_kernel(float* in, int low, int high)
-{
-    float pivot = in[high];
-    int i = low - 1;
-    
-    for(int j = low; j <= high - 1; j++)
-    {
-        if(in[j] <= pivot)
-        {
+__device__ int partition_d(float *arr, int low, int high) {
+    float pivot = arr[high];  // Pivot element
+    int i = low - 1;  // Index of smaller element
+
+    for (int j = low; j < high; j++) {
+        if (arr[j] <= pivot) {
             i++;
-            float temp = in[i];
-            in[i] = in[j];
-            in[j] = temp;
+            // Swap arr[i] and arr[j]
+            float temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
         }
     }
 
-    float temp = in[i + 1];
-    in[i + 1] = in[high];
-    in[high] = temp;
-    
-    return i + 1;
+    // Swap arr[i + 1] and arr[high] (or pivot)
+    float temp = arr[i + 1];
+    arr[i + 1] = arr[high];
+    arr[high] = temp;
+    return (i + 1);
 }
 
-__global__ void quicksort_kernel(float* in, int low, int high, int* stack)
-{
-    extern __shared__ float shared_data[];
+__global__ void quicksort_kernel(float *arr, int low, int high) {
+    // Shared memory stack for subarray bounds (low, high)
+    __shared__ int stack[STACK_SIZE];  
+    int stackIdx = threadIdx.x;
+    int top = -1;
 
-    int tid = threadIdx.x;
-    int start = blockIdx.x*BLOCK_SIZE;
-    int end = min(start + BLOCK_SIZE, high);
-    
+    // Start with the full array range
+    if (stackIdx == 0) {
+        stack[++top] = low;
+        stack[++top] = high;
+    }
 
-    if(start + tid <= end)
-    {
-        shared_data[tid] = in[start + tid];
-    }    
     __syncthreads();
 
-    int pLow = 0;
-    int pHigh = end - start;
+    // Loop until the stack is empty
+    while (top >= 0) {
+        int h = stack[top--];  // Pop high
+        int l = stack[top--];  // Pop low
 
-    while(pLow < pHigh)
-    {
-        int pivot_idx = partition_kernel(shared_data, pLow, pHigh);
+        // Partition the array
+        int p = partition_d(arr, l, h);
 
-        if(tid < pivot_idx)
-        {
-            //left sort of part
-        } else if(tid > pivot_idx){
-            //right sort of partition
+        // Push the subarrays onto the stack
+        if (p - 1 > l) {
+            stack[++top] = l;
+            stack[++top] = p - 1;
         }
-
-        __syncthreads();
-    }
-    if(start + tid <= end)
-    {
-        in[start + tid] = shared_data[tid];
+        if (p + 1 < h) {
+            stack[++top] = p + 1;
+            stack[++top] = h;
+        }
     }
 }
+
